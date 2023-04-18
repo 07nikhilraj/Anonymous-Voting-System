@@ -6,6 +6,7 @@ import collections
 import time
 import json
 mpp = {}
+mpp1 = {}
 mph = {}
 verified_pool=[]
 malicious_pool=[]
@@ -41,7 +42,7 @@ class Vote:
         return True
         
     def getVotingData(self): 
-        return self.voter.id +" "+ self.candidate.name + " "+ self.timestamp
+        return str(self.voter.id) +" "+ self.candidate.name + " "+ str(self.timestamp)
 class Block:
     def __init__ (self,prev_hash,merkleRootHash,timestamp,hash):
         self.prev_hash=prev_hash
@@ -79,28 +80,29 @@ def CalculateMerkleRoot(hashes_List_Of_Transactions):
         tempList=tmp
     return tempList[0]
         
-def winner(arr_of_voter):
+def winner(arr_of_voter,arr_of_cand):
     print("********************")
     print("The consensus to decide who will be the validator of this round begins\n")
     st={}
     pot=[]
     n=len(arr_of_voter)
     for i in range(n):
-        if arr_of_voter[i].id in mpp:
+        if arr_of_voter[i].id in mpp1:
             print("You are a candidate, you cannot become a validator \n")
             continue 
-        f = input("Do you wish to become a validator? (0/1) ")
+        f = int(input("Do you wish to become a validator? (0/1) "))
         if f == 1:
-            print("he he")
             pot.append(arr_of_voter[i])
     for i in range(len(pot)):
-        print("The ID of the voter is: "+pot[i].id)
-        print("The credit of the voter is: "+pot[i].credit)
+        print("The ID of the voter is: "+str(pot[i].id))
+        print("The credit of the voter is: "+str(pot[i].credit))
+        st[pot[i]]=0
+    
     for i in range(n):
         pot_id = int(input("Enter the id of the validator you want to vote for "))
-        st[pot_id]+=1
+        st[mph[pot_id]]+=1
     st_f = sorted(st.items(), key=lambda x:x[1])
-    return st_f[n-1][0]
+    return st_f[len(pot)-1][0]
 
 class voter:
     
@@ -135,11 +137,12 @@ class voter:
 
 class candidate:
     
-    def __init__(self,id,name,manifesto):
+    def __init__(self,id,name,manifesto,voter):
         self.id=id
         self.name=name
         self.manifesto=manifesto
         self.votes=0 
+        self.voter=voter
     def addVotes(self):
         self.votes=self.votes+1
         
@@ -169,22 +172,24 @@ def voter_adding(arr_of_voter,no_of_voters):
 def candidate_adding(arr_of_cand,no_of_cand):
     
     for i in range(no_of_cand):
-        list_of_prevtrans=[]
+        list_of_prev=[]
         id=int(input("Enter ID of candidate: "))
+        v_id=int(input("Enter  Voter ID of candidate: "))
         name=input("Enter candidate name: ")
         manifesto=input("Write the manifesto for the candidate: ")
-        cand=candidate(id,name,manifesto)
+        cand=candidate(id,name,manifesto,mph[v_id])
         mpp[id]=cand
+        mpp1[v_id]=cand
         arr_of_cand.append(cand)
 
 def voting_procedure(arr_of_cand,arr_of_voter,no_of_cand,no_of_voters,BC):
+    print("******** ********")
     # DISPLAYING THE MANIFESTO OF CANDIDATES
     for i in range(len(arr_of_cand)):
-        print(i)
-        print(arr_of_cand[i].id)
         print("The ID of the candidate is: "+str(arr_of_cand[i].id))
         print("The name of the candidate is: "+arr_of_cand[i].name)
         print("The manifesto of the candidate is: "+arr_of_cand[i].manifesto)
+        print("**** ****")
 
     for i in range(len(arr_of_voter)):
         if arr_of_voter[i].credit < 50:
@@ -198,17 +203,19 @@ def voting_procedure(arr_of_cand,arr_of_voter,no_of_cand,no_of_voters,BC):
             malicious_pool.append(vote_trans)
         
         if len(verified_pool) == BLOCKSIZE:
-            winner_of_round=winner(arr_of_voter)
+            winner_of_round=winner(arr_of_voter,arr_of_cand)
             leader_of_chain=validator(winner_of_round)
+            winner_of_round.credit+=50
+            print(winner_of_round.id)
             chain_true=leader_of_chain.validate_chain(BC.chain_array)
             last_blc=BC.last_block()
             if chain_true:
                 hash_of_trans=[]
                 for transac in verified_pool:
-                    to_hash=transac.getTransactionData()
+                    to_hash=transac.getVotingData()
                     hash_of_trans.append(sha256(to_hash.encode()).hexdigest())
-                    transac.candidate.addVote()
-                    transac.voter.addPrev(transac)
+                    transac.candidate.addVotes()
+                    transac.voter.add_prev(transac)
                     # print(transac.candiid)
                     
                 merkle_root=CalculateMerkleRoot(hash_of_trans) 
@@ -217,37 +224,61 @@ def voting_procedure(arr_of_cand,arr_of_voter,no_of_cand,no_of_voters,BC):
                 newBlock=Block(last_blc.hash,merkle_root,time.time(),hashblock)
                 BC.chain_array.append(newBlock)
                 verified_pool.clear()
-        
-
+    
+    if len(verified_pool)!=0:
+        winner_of_round=winner(arr_of_voter,arr_of_cand)
+        leader_of_chain=validator(winner_of_round)
+        winner_of_round.credit+=50
+        print(winner_of_round.id)
+        chain_true=leader_of_chain.validate_chain(BC.chain_array)
+        last_blc=BC.last_block()
+        if chain_true:
+            hash_of_trans=[]
+            for transac in verified_pool:
+                to_hash=transac.getVotingData()
+                hash_of_trans.append(sha256(to_hash.encode()).hexdigest())
+                transac.candidate.addVotes()
+                transac.voter.add_prev(transac)
+                # print(transac.candiid)
+                
+            merkle_root=CalculateMerkleRoot(hash_of_trans) 
+            to_hash1=str(merkle_root)+str(last_blc.hash)+str(time.time())
+            hashblock= sha256(to_hash1.encode()).hexdigest()
+            newBlock=Block(last_blc.hash,merkle_root,time.time(),hashblock)
+            BC.chain_array.append(newBlock)
+            verified_pool.clear()
+    
+    res=[]
+    for i in range(len(arr_of_cand)):
+        res.append([arr_of_cand[i],arr_of_cand[i].votes])
+    res.sort(key = lambda x: x[1])
+    res.reverse()
+    print("********** Here are the results of the election: **********\n")
+    for i in range(len(res)):
+        print("The id of the candidate is " + str(res[i][0].id) + ", the name is " + res[i][0].name + ", with " + str(res[i][1]) + " votes.\n")
 
 def main():
     
     BC=Blockchain()
     BC.create_genesis()
-    arr_of_voter=[]
-    arr_of_cand=[]
-    
-    no_of_voters=int(input("Enter the number of voters: "))
-    voter_adding(arr_of_voter,no_of_voters)
-    
-    no_of_cand=int(input("Enter number of candidate: "))
-    candidate_adding(arr_of_cand,no_of_cand) 
 
     # print(arr_of_cand)
     run=True
     while run:
         print("******** ********")
-        print("Enter 1 for : Begin the voting procedure\nEnter -1 to exit \nEnter 2 to add new voter for the election\nEnter 3 to check Transactions against the user\nEnter 4 to check block structure")
+        print("Enter 1 for : Begin the voting procedure\nEnter -1 to exit \nEnter 2 to check Transactions against the user\nEnter 3 to check block structure")
         val=int(input())
         if val == -1:
             run=False
         elif val == 1:
+            arr_of_voter=[]
+            arr_of_cand=[]
+            no_of_voters=int(input("Enter the number of voters: "))
+            voter_adding(arr_of_voter,no_of_voters)
+            no_of_cand=int(input("Enter number of candidate: "))
+            candidate_adding(arr_of_cand,no_of_cand) 
             voting_procedure(arr_of_cand,arr_of_voter,no_of_voters,no_of_cand,BC)  
         elif val == 2:
-            no_of_voter1=int(input("Enter the number of people to be added: "))
-            voter_adding(arr_of_voter,no_of_voter1)       
-            print("People Registered Sucessfully! \n")
-        elif val == 3:
             voter_id=int(input("Please Enter the voter ID whose previous transactions you want to view: "))
             if mph.get(voter_id) is None:
                 print("\nVoter does NOT exist.\n")
@@ -255,8 +286,8 @@ def main():
                 print("No transactions have occured for this voter")
             else:
                 for transac in mph[voter_id].prev_trans:
-                    print(transac.voter.id+" voted for"+transac.candidate.name+" at "+ transac.timestamp)
-        elif val == 4:
+                    print(str(transac.voter.id)+" voted for "+transac.candidate.name+" at "+ str(transac.timestamp))
+        elif val == 3:
             for block in BC.chain_array:
                 print("previous hash is ",block.prev_hash," current block hash is ",block.hash," merke root is ",block.merkleRootHash,"\n")
     
