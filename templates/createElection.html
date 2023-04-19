@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+      }
+      .parent {
+        height: 100vh;
+        background-color: aqua;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS",
+          sans-serif;
+      }
+      .parent h1 {
+        z-index: 1000;
+        margin: 2%;
+      }
+      .container {
+        background: red;
+        display: flex;
+        flex-direction: column;
+        line-height: 150%;
+        align-items: center;
+      }
+      .container div {
+        margin: 25px 5px;
+        justify-content: center;
+        
+      }
+      .container button {
+        border: none;
+        border-radius: 10px;
+        background-color: white;
+        font-size: 1rem;
+        width: 30%;
+        margin-bottom: 15px;
+        padding: 15px;
+        cursor: pointer;
+        transition-duration: 0.4s;
+      }
+      button:hover {
+        box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+        }
+      .child{
+        display: flex;
+        /* align-items: center; */
+      }
+      .child div{
+        margin: 40px;
+      }
+      .child img{
+        height: 60vh;
+        width: auto;
+      }
+      div.content{
+        /* background-color: antiquewhite; */
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-around;
+      }
+      @media screen and (max-width:1000px) {
+        .parent{
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+        .child{
+            flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="parent">
+      <div class="container">
+        <h1>Create Election</h1>
+        <div class="child">
+            <img src="https://images.unsplash.com/photo-1604420022249-87e637722439?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80" alt="Election">
+            <div class="content">
+                Welcome to the Create Election page, where you can set up a new election using blockchain technology. With the inherent transparency and security of blockchain, our voting system ensures that every vote is counted accurately and fairly. On this page, you can define the name, start and end dates, eligible voters, candidates, and other important details for the election. You can also set up rules and requirements for the election, such as the number of votes each voter can cast and the threshold for a candidate or issue to win. Additionally, our user-friendly interface allows for easy uploading and verification of voter identities and generation of unique blockchain-based identifiers. Thank you for choosing our blockchain-based voting system, and we hope that you have a seamless experience creating your election on this page.
+                <br>
+                <form action="{{ url_for('begin_voting') }}" method="POST">
+                  <input type="text" name="no_of_cand" placeholder="No_of_cand">
+                  <input type="text" name="voters" placeholder="No_of_voters">
+                <button type="submit">Create Election</button>
+              </form>
+            </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,3 +1,5 @@
+from flask import Flask,render_template,request
+
 from hashlib import sha256
 from random import randint
 G = 6888568692585230484085178164612752085904825452153643755802747
@@ -10,6 +12,10 @@ mpp1 = {}
 mph = {}
 verified_pool=[]
 malicious_pool=[]
+no_of_voters=0
+no_of_cand=0
+arr_of_voter=[]
+arr_of_cand=[]
 BLOCKSIZE = 3
 class Vote:
     def __init__(self, voter,candidate):
@@ -257,43 +263,40 @@ def voting_procedure(arr_of_cand,arr_of_voter,no_of_cand,no_of_voters,BC):
     for i in range(len(res)):
         print("The id of the candidate is " + str(res[i][0].id) + ", the name is " + res[i][0].name + ", with " + str(res[i][1]) + " votes.\n")
 
-def main():
-    
-    run=True
-    while run:
-        print("******** ********")
-        print("Enter 1 for : Begin the voting procedure\nEnter -1 to exit \nEnter 2 to check Transactions against the user\nEnter 3 to check block structure")
-        val=int(input())
-        if val == -1:
-            run=False
-        elif val == 1:
-            BC=Blockchain()
-            BC.create_genesis()
-            arr_of_voter=[]
-            arr_of_cand=[]
-            no_of_voters=int(input("Enter the number of voters: "))
-            voter_adding(arr_of_voter,no_of_voters)
-            no_of_cand=int(input("Enter number of candidate: "))
-            candidate_adding(arr_of_cand,no_of_cand) 
-            voting_procedure(arr_of_cand,arr_of_voter,no_of_voters,no_of_cand,BC)  
-        elif val == 2:
-            voter_id=int(input("Please Enter the voter ID whose previous transactions you want to view: "))
-            if mph.get(voter_id) is None:
-                print("\nVoter does NOT exist.\n")
-            elif len(mph[voter_id].prev_trans)==0:
-                print("No transactions have occured for this voter")
-            else:
-                for transac in mph[voter_id].prev_trans:
-                    print(str(transac.voter.id)+" voted for "+transac.candidate.name+" at "+ str(transac.timestamp))
-        elif val == 3:
-            for block in BC.chain_array:
-                print("previous hash is ",block.prev_hash," current block hash is ",block.hash," merke root is ",block.merkleRootHash,"\n")
-    
-    
-    
-    
-if __name__=="__main__":
-    main()
+
+app = Flask(__name__)
+
+@app.route('/')
+def hello():
+    return render_template('createElection.html')
 
 
 
+@app.route('/begin_voting', methods=['POST'])
+def begin_voting():
+    BC=Blockchain()
+    BC.create_genesis()
+    arr_of_voter=[]
+    arr_of_cand=[]
+    no_of_voters=int(request.form['voters'])
+    no_of_cand=int(request.form['no_of_cand'])
+    voter_adding(arr_of_voter,no_of_voters)
+    return render_template('candidatePage.html')
+
+
+@app.route('/reg_cand', methods=['POST'])
+def reg_cand():
+    name=request.form['name']
+    v_id=int(request.form['voter_id'])
+    manifesto=request.form['manifesto']
+    id=int(request.form['id'])
+    cand=candidate(id,name,manifesto,mph[v_id])
+    mpp[id]=cand
+    mpp1[v_id]=cand
+    arr_of_cand.append(cand)
+    return render_template('candidatePage.html')
+
+@app.route('/next1', methods=['POST'])
+def next1():
+    return render_template('next1.html')
+app.run()

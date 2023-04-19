@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .parent{
+            color: black;
+            width: 60%;
+            margin: auto;
+            text-align: center;
+            background-color: rgb(191, 177, 177);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        form{
+            font-size: 1rem;
+            margin: 1rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            align-items: center;
+        }
+        #buttons{
+            display: flex;
+            justify-content: space-around;
+        }
+        button{
+            padding: .5rem;
+            font-size: 1rem;
+            border-radius: 10px;
+            border: none;
+            width: 20%;
+            cursor: pointer;
+            padding: 10px;
+            transition-duration: 0.4s;
+        }
+        button:hover {
+            box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+        }
+    </style>
+</head>
+<body>
+    <div class="parent">
+        <h1>Candidate Information</h1>
+        <div id="formContainer">
+            <!-- <form>
+                <label for="name">Name:</label>
+                <input type="text" name="name">
+                <label for="email">VoterID:</label>
+                <input type="text" name="email">
+                <label for="email">Manifesto:</label>
+                <textarea type="text" name="manifesto" rows="4" cols="50"></textarea> -->
+                <!-- <button class="remove">Delete</button> -->
+        <!-- </form> -->
+        <form action="{{ url_for('reg_cand') }}" method="post">
+            <div>
+                <label for="ID">ID</label>:</label>
+                <input type="text" name="id">
+                <label for="name">Name:</label>
+                <input type="text" name="name">
+                <label for="email">VoterID:</label>
+                <input type="text" name="voter_id">
+                <label for="email">Manifesto:</label>
+                <textarea type="text" name="manifesto" rows="4" cols="50"></textarea>
+            </div>
+            <button id="addButton" type="submit">Add Candidate</button>
+        </form>
+    </div>
+    <form action="{{ url_for('next1') }}" method="post">
+        <div id="buttons">
+            <button type="submit" id="submit">NEXT</button>
+        </div>
+    </form>
+</div>
+
+    <script>
+        const addButton = document.getElementById('addButton');
+        const formContainer = document.getElementById('formContainer');
+        // console.log(formContainer)
+        let formCount = 2;
+        const formTemplate = document.createElement('form');
+        formTemplate.classList.add('form');
+        formTemplate.innerHTML = `
+            <label for="name">Name:</label>
+            <input type="text" name="name">
+            <label for="email">VoterID:</label>
+            <input type="text" name="email">
+            <label for="email">Manifesto:</label>
+            <textarea type="text" name="manifesto" rows="4" cols="50"></textarea>
+            <button class="remove">Delete</button>
+            `;
+      
+        addButton.addEventListener('click', function() {
+          formCount++;
+          const newForm = formTemplate.cloneNode(true);
+          newForm.querySelector('.remove').addEventListener('click', function() {
+            newForm.remove();
+          });
+          formContainer.appendChild(newForm);
+        })
+
+    </script>
+</body>
+</html>
